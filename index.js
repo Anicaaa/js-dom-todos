@@ -1,57 +1,50 @@
-const listUL = document.querySelector("#todo-list");
-const form = document.querySelector("#todo-item-form");
+const listUL = document.querySelector(".todo-list");
+const form = document.querySelector(".todo-form");
 
-form.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const todo = event.target[0].value;
-  console.log(todo);
-  event.target.reset();
+// Make a GET request with fetch to http://localhost:3000/todos to load all Todos from the server and render them in a list. Completed Todos should be grey and scored out.
 
-  const opts = {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title: todo, completed: false }),
-  };
-
-  fetch(`http://localhost:3000/todos`, opts)
-    .then((res) => res.json())
-    .then((data) => {
-      console.log(data);
-      /* const li = document.createElement("li");
-      li.innerText = data.title;
-      listUL.append(li); */
-      updateTodoList();
-    });
-});
-
-function clearTodosList() {
-  listUL.innerHTML = "";
-}
-
-function updateTodoList() {
-  clearTodosList();
-
+function getAndRenderTodoList() {
   fetch("http://localhost:3000/todos")
     .then((res) => res.json())
     .then((data) => {
-      console.log(data);
-
-      for (let i = 0; i < data.length; i++) {
-        const todolist = data[i];
-        const li = document.createElement("li");
-
-        //li.addEventListener("click", function)
-
-        li.innerText = todolist.title;
-        if (todolist.completed) {
-          li.setAttribute("class", "completed");
-        } else {
-          li.setAttribute("class", "todo");
-        }
-        listUL.append(li);
-      }
-      return listUL;
+      renderTodoList(data);
     });
 }
 
-updateTodoList();
+function renderTodoList(todos) {
+  // clear the html
+  listUL.innerHTML = "";
+  // loop through the todo items
+  todos.forEach((todo) => {
+    // create the todo list item element
+    const li = document.createElement("li");
+    li.innerText = todo.title;
+    if (todo.completed) {
+      li.setAttribute("class", "completed");
+    }
+    // append to the listUL
+    listUL.append(li);
+  });
+}
+
+// When the form is submitted, make POST request with fetch to http://localhost:3000/todos to create a new Todo. Update the list of Todos without reloading the page.
+form.addEventListener("submit", (event) => {
+  // prevent page reload
+  event.preventDefault();
+  // get value from input field
+  const title = event.target[0].value;
+  // make a POST request with data
+  const obj = {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title: title, completed: false }),
+  };
+  fetch(`http://localhost:3000/todos`, obj)
+    .then((res) => res.json())
+    .then((data) => {
+      console.log(data);
+      getAndRenderTodoList();
+    });
+});
+
+getAndRenderTodoList();
